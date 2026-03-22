@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoLab</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f6f6f3;
+  --white:#ffffff;
+  --border:#e2e2dc;
+  --text:#1c1c1c;
+  --muted:#8a8a84;
+  --sidebar:#fafaf8;
+  --accent:#2563eb;
+  --accent-bg:#eff6ff;
+  --green:#16a34a;
+  --green-bg:#f0fdf4;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── Header ── */
+header{
+  height:50px;background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:10px;
+  position:sticky;top:0;z-index:100;flex-shrink:0;
+}
+.logo{font-family:var(--mono);font-weight:600;font-size:.9rem;letter-spacing:-.3px;}
+.logo em{color:var(--accent);font-style:normal;}
+.logo-sep{width:1px;height:18px;background:var(--border);margin:0 4px;}
+.logo-sub{font-size:.72rem;color:var(--muted);font-family:var(--sans);}
+
+/* ── Layout ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:200px;flex-shrink:0;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  height:calc(100vh - 50px);
+  position:sticky;top:50px;
+}
+.sb-section{padding:14px 0 4px;}
+.sb-label{
+  font-size:.62rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);padding:0 14px 6px;display:block;
+}
+.sb-btn{
+  width:100%;display:flex;align-items:center;gap:9px;
+  padding:7px 14px;border:none;background:none;
+  color:var(--muted);font-family:var(--sans);font-size:.83rem;font-weight:500;
+  cursor:pointer;text-align:left;transition:all .12s;
+  border-left:2px solid transparent;
+}
+.sb-btn:hover{background:var(--bg);color:var(--text);}
+.sb-btn.on{background:var(--accent-bg);color:var(--accent);font-weight:600;border-left-color:var(--accent);}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.d-blue{background:#3b82f6;}
+.d-amber{background:#f59e0b;}
+.d-green{background:#22c55e;}
+.d-purple{background:#a855f7;}
+.sb-divider{height:1px;background:var(--border);margin:6px 14px;}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;height:calc(100vh - 50px);}
+.panel{display:none;padding:28px 32px;max-width:700px;}
+.panel.on{display:block;animation:fi .18s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Panel header ── */
+.p-title{font-size:1.1rem;font-weight:600;margin-bottom:3px;}
+.p-desc{font-size:.8rem;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.p-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;margin-top:-10px;}
+.badge{font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.02em;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-amber{background:#fef3c7;color:#d97706;}
+.badge-green{background:#dcfce7;color:#15803d;}
+.badge-purple{background:#f3e8ff;color:#7e22ce;}
+
+/* ── Form ── */
+.field{margin-bottom:12px;}
+label{display:block;font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+input[type=text],input[type=number],textarea,select{
+  width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;
+  font-family:var(--mono);font-size:.83rem;background:var(--white);
+  color:var(--text);outline:none;transition:border-color .12s;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:64px;}
+input[type=number]{width:auto;min-width:80px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+/* ── Buttons ── */
+.btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+.btn{padding:8px 18px;border-radius:5px;font-size:.78rem;font-weight:600;font-family:var(--sans);cursor:pointer;border:1px solid transparent;transition:all .12s;}
+.btn-blue{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-blue:hover{background:#1d4ed8;}
+.btn-green{background:var(--white);color:var(--green);border-color:#86efac;}
+.btn-green:hover{background:var(--green-bg);}
+.btn-plain{background:var(--bg);color:var(--text);border:1px solid var(--border);font-family:var(--sans);font-size:.76rem;font-weight:500;padding:6px 12px;border-radius:5px;cursor:pointer;transition:all .12s;}
+.btn-plain:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── Output ── */
+.out-wrap{margin-top:18px;}
+.out-label{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+.out-box{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-family:var(--mono);font-size:.83rem;min-height:42px;word-break:break-all;line-height:1.6;color:var(--muted);}
+.out-box.filled{color:var(--text);border-color:#86efac;background:var(--green-bg);}
+.copy-btn{font-family:var(--sans);font-size:.68rem;padding:2px 8px;border:1px solid var(--border);background:var(--white);border-radius:4px;cursor:pointer;color:var(--muted);font-weight:500;transition:all .12s;}
+.copy-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+/* ── Steps ── */
+.steps{margin-top:8px;background:#fafaf8;border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-family:var(--mono);font-size:.74rem;line-height:1.8;color:var(--muted);max-height:160px;overflow-y:auto;display:none;}
+.steps .hl{color:var(--accent);font-weight:600;}
+.steps .ok{color:var(--green);font-weight:600;}
+.steps .er{color:#dc2626;font-weight:600;}
+
+/* ── Info ── */
+.info{margin-top:12px;padding:10px 13px;background:var(--accent-bg);border-radius:5px;font-size:.77rem;color:#1e40af;line-height:1.6;}
+.info strong{font-weight:600;}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+/* ── Matrix ── */
+.mat-wrap{display:inline-grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px;}
+.mat-wrap input{width:68px;min-width:unset;}
+
+/* ── Playfair grid ── */
+.pf-grid{display:grid;grid-template-columns:repeat(5,32px);gap:3px;margin-top:6px;}
+.pf-cell{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:.8rem;font-weight:600;background:var(--white);}
+
+/* ── Rail fence ── */
+.rf-vis{margin-top:6px;font-family:var(--mono);font-size:.78rem;overflow-x:auto;}
+.rf-row{display:flex;align-items:center;margin-bottom:3px;}
+.rf-lbl{width:52px;font-size:.68rem;color:var(--muted);flex-shrink:0;}
+.rf-ch{width:16px;text-align:center;color:#d0d0c8;}
+.rf-ch.on{color:var(--accent);font-weight:700;}
+
+/* ── RC Table ── */
+.rc-tbl{border-collapse:collapse;margin-top:6px;font-family:var(--mono);font-size:.78rem;}
+.rc-tbl th,.rc-tbl td{border:1px solid var(--border);padding:5px 9px;text-align:center;}
+.rc-tbl th{background:var(--bg);font-weight:600;color:var(--accent);}
+
+/* ── DH boxes ── */
+.dh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.dh-box{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-family:var(--mono);font-size:.76rem;line-height:1.7;color:var(--muted);}
+.dh-box strong{color:var(--text);font-weight:600;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">crypto<em>lab</em></div>
+  <div class="logo-sep"></div>
+  <span class="logo-sub">Cipher & Cryptography Toolkit</span>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <div class="sb-section">
+      <span class="sb-label">Substitution</span>
+      <button class="sb-btn on" onclick="show('caesar',this)"><span class="dot d-blue"></span>Caesar</button>
+      <button class="sb-btn" onclick="show('vigenere',this)"><span class="dot d-blue"></span>Vigenère</button>
+      <button class="sb-btn" onclick="show('hill',this)"><span class="dot d-blue"></span>Hill</button>
+      <button class="sb-btn" onclick="show('playfair',this)"><span class="dot d-blue"></span>Playfair</button>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <span class="sb-label">Transposition</span>
+      <button class="sb-btn" onclick="show('railfence',this)"><span class="dot d-amber"></span>Rail Fence</button>
+      <button class="sb-btn" onclick="show('rowcol',this)"><span class="dot d-amber"></span>Row &amp; Column</button>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <span class="sb-label">Symmetric</span>
+      <button class="sb-btn" onclick="show('des',this)"><span class="dot d-green"></span>DES</button>
+      <button class="sb-btn" onclick="show('aes',this)"><span class="dot d-green"></span>AES</button>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <span class="sb-label">Asymmetric</span>
+      <button class="sb-btn" onclick="show('rsa',this)"><span class="dot d-purple"></span>RSA</button>
+      <button class="sb-btn" onclick="show('dh',this)"><span class="dot d-purple"></span>Diffie-Hellman</button>
+      <button class="sb-btn" onclick="show('elgamal',this)"><span class="dot d-purple"></span>ElGamal</button>
+      <button class="sb-btn" onclick="show('ecc',this)"><span class="dot d-purple"></span>ECC</button>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- ── CAESAR ── -->
+    <div id="panel-caesar" class="panel on">
+      <div class="p-title">Caesar Cipher</div>
+      <div class="p-desc">Shifts every letter by a fixed amount K. One of the oldest and simplest encryption techniques.</div>
+      <div class="p-badges"><span class="badge badge-blue">Substitution</span><span class="badge badge-blue">Monoalphabetic</span><span class="badge badge-blue">Symmetric</span></div>
+      <div class="field"><label>Text</label><input type="text" id="ca-t" value="HELLO WORLD"></div>
+      <div class="field"><label>Shift key (0 – 25)</label><input type="number" id="ca-k" value="3" min="0" max="25"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="caRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="caRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('ca-o')">Copy</button></div>
+        <div class="out-box" id="ca-o">—</div>
+        <div class="steps" id="ca-s"></div>
+      </div>
+      <div class="info"><strong>Encrypt:</strong> C = (P + K) mod 26 &nbsp;·&nbsp; <strong>Decrypt:</strong> P = (C − K + 26) mod 26</div>
+    </div>
+
+    <!-- ── VIGENÈRE ── -->
+    <div id="panel-vigenere" class="panel">
+      <div class="p-title">Vigenère Cipher</div>
+      <div class="p-desc">Uses a repeating keyword to shift each letter by different amounts — a polyalphabetic substitution.</div>
+      <div class="p-badges"><span class="badge badge-blue">Substitution</span><span class="badge badge-blue">Polyalphabetic</span></div>
+      <div class="field"><label>Text</label><input type="text" id="vi-t" value="ATTACK AT DAWN"></div>
+      <div class="field"><label>Keyword</label><input type="text" id="vi-k" value="LEMON"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="viRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="viRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('vi-o')">Copy</button></div>
+        <div class="out-box" id="vi-o">—</div>
+        <div class="steps" id="vi-s"></div>
+      </div>
+      <div class="info"><strong>Encrypt:</strong> Cᵢ = (Pᵢ + Kᵢ) mod 26 &nbsp;·&nbsp; <strong>Decrypt:</strong> Pᵢ = (Cᵢ − Kᵢ + 26) mod 26</div>
+    </div>
+
+    <!-- ── HILL ── -->
+    <div id="panel-hill" class="panel">
+      <div class="p-title">Hill Cipher</div>
+      <div class="p-desc">Encrypts pairs of letters using matrix multiplication in modular arithmetic mod 26.</div>
+      <div class="p-badges"><span class="badge badge-blue">Substitution</span><span class="badge badge-blue">Polygraphic</span><span class="badge badge-blue">Matrix-based</span></div>
+      <div class="field"><label>Text (letters only, even length)</label><input type="text" id="hi-t" value="HELP"></div>
+      <div class="field">
+        <label>Key Matrix (2 × 2, values 0–25)</label>
+        <div class="mat-wrap">
+          <input type="number" id="h00" value="3" min="0" max="25">
+          <input type="number" id="h01" value="3" min="0" max="25">
+          <input type="number" id="h10" value="2" min="0" max="25">
+          <input type="number" id="h11" value="5" min="0" max="25">
+        </div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="hiRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="hiRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('hi-o')">Copy</button></div>
+        <div class="out-box" id="hi-o">—</div>
+        <div class="steps" id="hi-s"></div>
+      </div>
+      <div class="info"><strong>Encrypt:</strong> C = K · P mod 26 &nbsp;·&nbsp; <strong>Decrypt:</strong> P = K⁻¹ · C mod 26 &nbsp;·&nbsp; Matrix must be invertible mod 26</div>
+    </div>
+
+    <!-- ── PLAYFAIR ── -->
+    <div id="panel-playfair" class="panel">
+      <div class="p-title">Playfair Cipher</div>
+      <div class="p-desc">Encrypts letter pairs (digraphs) using a 5×5 keyword matrix. I and J share one cell.</div>
+      <div class="p-badges"><span class="badge badge-blue">Substitution</span><span class="badge badge-blue">Digraphic</span></div>
+      <div class="field"><label>Text</label><input type="text" id="pf-t" value="HIDE GOLD"></div>
+      <div class="field"><label>Keyword</label><input type="text" id="pf-k" value="MONARCHY" oninput="pfGrid()"></div>
+      <div class="field"><label>5 × 5 Key Matrix</label><div class="pf-grid" id="pf-g"></div></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="pfRun(false)">Encrypt</button>
+        <button class="btn btn-green" onclick="pfRun(true)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('pf-o')">Copy</button></div>
+        <div class="out-box" id="pf-o">—</div>
+        <div class="steps" id="pf-s"></div>
+      </div>
+      <div class="info"><strong>Same row</strong> → shift right &nbsp;·&nbsp; <strong>Same col</strong> → shift down &nbsp;·&nbsp; <strong>Rectangle</strong> → swap columns &nbsp;·&nbsp; <strong>Repeated pair</strong> → insert X</div>
+    </div>
+
+    <!-- ── RAIL FENCE ── -->
+    <div id="panel-railfence" class="panel">
+      <div class="p-title">Rail Fence Cipher</div>
+      <div class="p-desc">Writes text in a zigzag pattern across N rails, then reads each rail left-to-right.</div>
+      <div class="p-badges"><span class="badge badge-amber">Transposition</span><span class="badge badge-amber">Zigzag</span></div>
+      <div class="field"><label>Text</label><input type="text" id="rf-t" value="WEAREDISCOVEREDRUNATONCE"></div>
+      <div class="field"><label>Number of rails</label><input type="number" id="rf-n" value="3" min="2" max="10"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="rfRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="rfRun(false)">Decrypt</button>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Rail Visualization</label><div class="rf-vis" id="rf-v"></div></div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('rf-o')">Copy</button></div>
+        <div class="out-box" id="rf-o">—</div>
+      </div>
+    </div>
+
+    <!-- ── ROW & COLUMN ── -->
+    <div id="panel-rowcol" class="panel">
+      <div class="p-title">Row &amp; Column Transposition</div>
+      <div class="p-desc">Text is written into rows, then columns are read in the alphabetical order of the keyword letters.</div>
+      <div class="p-badges"><span class="badge badge-amber">Transposition</span><span class="badge badge-amber">Columnar</span></div>
+      <div class="field"><label>Text</label><input type="text" id="rc-t" value="WEAREDISCOVERED"></div>
+      <div class="field"><label>Keyword</label><input type="text" id="rc-k" value="ZEBRAS"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="rcRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="rcRun(false)">Decrypt</button>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Grid</label><div id="rc-v" style="overflow-x:auto"></div></div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('rc-o')">Copy</button></div>
+        <div class="out-box" id="rc-o">—</div>
+      </div>
+    </div>
+
+    <!-- ── DES ── -->
+    <div id="panel-des" class="panel">
+      <div class="p-title">DES — Data Encryption Standard</div>
+      <div class="p-desc">Symmetric-key block cipher using a 56-bit key and 16 Feistel rounds on 64-bit blocks. Educational simulation.</div>
+      <div class="p-badges"><span class="badge badge-green">Symmetric</span><span class="badge badge-green">Block Cipher</span><span class="badge badge-green">64-bit Block</span><span class="badge badge-green">Feistel</span></div>
+      <div class="field"><label>Plaintext</label><input type="text" id="des-t" value="Hello DES"></div>
+      <div class="field"><label>Key (exactly 8 characters)</label><input type="text" id="des-k" value="DESCRYPT" maxlength="8"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="desRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="desRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output (hex) <button class="copy-btn" onclick="cp('des-o')">Copy</button></div>
+        <div class="out-box" id="des-o">—</div>
+        <div class="steps" id="des-s"></div>
+      </div>
+      <div class="info"><strong>Structure:</strong> Initial Permutation (IP) → 16 Feistel Rounds: Expand(R) + XOR(Kᵢ) + S-Boxes + Permute + Swap → Final Permutation (IP⁻¹)</div>
+    </div>
+
+    <!-- ── AES ── -->
+    <div id="panel-aes" class="panel">
+      <div class="p-title">AES — Advanced Encryption Standard</div>
+      <div class="p-desc">Block cipher with 128/192/256-bit keys operating on a 4×4 byte state matrix. Educational simulation.</div>
+      <div class="p-badges"><span class="badge badge-green">Symmetric</span><span class="badge badge-green">Block Cipher</span><span class="badge badge-green">128-bit Block</span><span class="badge badge-green">Rijndael</span></div>
+      <div class="field"><label>Plaintext</label><input type="text" id="aes-t" value="Hello AES World!"></div>
+      <div class="field"><label>Key</label><input type="text" id="aes-k" value="MySecretKey12345"></div>
+      <div class="field"><label>Key size</label>
+        <select id="aes-sz" style="width:170px">
+          <option value="128">AES-128 (10 rounds)</option>
+          <option value="192">AES-192 (12 rounds)</option>
+          <option value="256">AES-256 (14 rounds)</option>
+        </select>
+      </div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="aesRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="aesRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output (hex) <button class="copy-btn" onclick="cp('aes-o')">Copy</button></div>
+        <div class="out-box" id="aes-o">—</div>
+        <div class="steps" id="aes-s"></div>
+      </div>
+      <div class="info"><strong>Each round:</strong> SubBytes → ShiftRows → MixColumns → AddRoundKey &nbsp;·&nbsp; Final round skips MixColumns</div>
+    </div>
+
+    <!-- ── RSA ── -->
+    <div id="panel-rsa" class="panel">
+      <div class="p-title">RSA Algorithm</div>
+      <div class="p-desc">Public-key cryptosystem. Encrypt with the public key (e, n), decrypt with the private key (d, n).</div>
+      <div class="p-badges"><span class="badge badge-purple">Asymmetric</span><span class="badge badge-purple">Public Key</span><span class="badge badge-purple">Number Theory</span></div>
+      <div class="row2">
+        <div class="field"><label>Prime p</label><input type="number" id="rp" value="61"></div>
+        <div class="field"><label>Prime q</label><input type="number" id="rq" value="53"></div>
+      </div>
+      <div class="btns"><button class="btn-plain" onclick="rsaGen()">Generate Keys from p &amp; q</button></div>
+      <div class="steps" id="rsa-kg" style="margin-top:10px"></div>
+      <hr>
+      <div class="field"><label>Message M (integer, must be &lt; n)</label><input type="number" id="rm" value="42"></div>
+      <div class="row2">
+        <div class="field"><label>Public key e</label><input type="number" id="re" value="17"></div>
+        <div class="field"><label>Private key d</label><input type="number" id="rd" value="2753"></div>
+      </div>
+      <div class="field"><label>Modulus n</label><input type="number" id="rn" value="3233" style="width:160px"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="rsaRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="rsaRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('rsa-o')">Copy</button></div>
+        <div class="out-box" id="rsa-o">—</div>
+        <div class="steps" id="rsa-s"></div>
+      </div>
+      <div class="info"><strong>Key gen:</strong> n = p·q, φ(n) = (p−1)(q−1), choose e where gcd(e,φ)=1, d = e⁻¹ mod φ &nbsp;·&nbsp; <strong>Enc:</strong> C = Mᵉ mod n &nbsp;·&nbsp; <strong>Dec:</strong> M = Cᵈ mod n</div>
+    </div>
+
+    <!-- ── DIFFIE-HELLMAN ── -->
+    <div id="panel-dh" class="panel">
+      <div class="p-title">Diffie-Hellman Key Exchange</div>
+      <div class="p-desc">Two parties derive the same shared secret over an insecure channel without ever transmitting the secret itself.</div>
+      <div class="p-badges"><span class="badge badge-purple">Key Exchange</span><span class="badge badge-purple">Discrete Log</span></div>
+      <div class="row2">
+        <div class="field"><label>Prime p (public)</label><input type="number" id="dp" value="23"></div>
+        <div class="field"><label>Generator g (public)</label><input type="number" id="dg" value="5"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Alice's private key a</label><input type="number" id="da" value="6"></div>
+        <div class="field"><label>Bob's private key b</label><input type="number" id="db" value="15"></div>
+      </div>
+      <div class="btns"><button class="btn btn-blue" onclick="dhRun()">Compute Shared Secret</button></div>
+      <div class="steps" id="dh-s" style="margin-top:14px;max-height:220px"></div>
+      <div class="info"><strong>Alice sends:</strong> A = gᵃ mod p &nbsp;·&nbsp; <strong>Bob sends:</strong> B = gᵇ mod p &nbsp;·&nbsp; <strong>Shared secret:</strong> s = Bᵃ mod p = Aᵇ mod p</div>
+    </div>
+
+    <!-- ── ELGAMAL ── -->
+    <div id="panel-elgamal" class="panel">
+      <div class="p-title">ElGamal Cryptography</div>
+      <div class="p-desc">Probabilistic public-key encryption based on the Diffie-Hellman problem. Ciphertext is a pair (C₁, C₂).</div>
+      <div class="p-badges"><span class="badge badge-purple">Asymmetric</span><span class="badge badge-purple">Probabilistic</span><span class="badge badge-purple">Discrete Log</span></div>
+      <div class="row2">
+        <div class="field"><label>Prime p</label><input type="number" id="ep" value="23"></div>
+        <div class="field"><label>Generator g</label><input type="number" id="eg_g" value="5"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Private key x</label><input type="number" id="ex" value="6"></div>
+        <div class="field"><label>Random k (for encryption)</label><input type="number" id="ek" value="3"></div>
+      </div>
+      <div class="field"><label>Message M (integer, 0 &lt; M &lt; p)</label><input type="number" id="em" value="10"></div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="egRun(true)">Encrypt</button>
+        <button class="btn btn-green" onclick="egRun(false)">Decrypt</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output <button class="copy-btn" onclick="cp('eg-o')">Copy</button></div>
+        <div class="out-box" id="eg-o">—</div>
+        <div class="steps" id="eg-s"></div>
+      </div>
+      <div class="info"><strong>Key gen:</strong> y = gˣ mod p &nbsp;·&nbsp; <strong>Encrypt:</strong> C₁=gᵏ mod p, C₂=M·yᵏ mod p &nbsp;·&nbsp; <strong>Decrypt:</strong> M = C₂·(C₁ˣ)⁻¹ mod p</div>
+    </div>
+
+    <!-- ── ECC ── -->
+    <div id="panel-ecc" class="panel">
+      <div class="p-title">Elliptic Curve Cryptography (ECDH)</div>
+      <div class="p-desc">Uses algebraic structure of elliptic curves over finite fields for key exchange. y² = x³ + ax + b (mod p)</div>
+      <div class="p-badges"><span class="badge badge-purple">Asymmetric</span><span class="badge badge-purple">Elliptic Curve</span><span class="badge badge-purple">ECDH</span></div>
+      <div class="row3">
+        <div class="field"><label>a</label><input type="number" id="ea" value="2"></div>
+        <div class="field"><label>b</label><input type="number" id="eb" value="2"></div>
+        <div class="field"><label>Prime p</label><input type="number" id="ep2" value="17"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Generator Gx</label><input type="number" id="egx" value="5"></div>
+        <div class="field"><label>Generator Gy</label><input type="number" id="egy" value="1"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Alice's private key nA</label><input type="number" id="ena" value="2"></div>
+        <div class="field"><label>Bob's private key nB</label><input type="number" id="enb" value="3"></div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-blue" onclick="eccRun()">Compute ECDH</button>
+        <button class="btn btn-green" onclick="eccPts()">List Curve Points</button>
+      </div>
+      <div class="out-wrap">
+        <div class="out-label">Output</div>
+        <div class="out-box" id="ecc-o">—</div>
+        <div class="steps" id="ecc-s"></div>
+      </div>
+      <div class="info"><strong>Point multiply:</strong> PA = nA·G, PB = nB·G &nbsp;·&nbsp; <strong>Shared secret:</strong> nA·PB = nB·PA &nbsp;·&nbsp; <strong>Point add/double</strong> uses modular inverse</div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ─── Navigation ────────────────────────────────────────────────────────────
+function show(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('panel-' + id).classList.add('on');
+  if (btn) btn.classList.add('on');
+  if (id === 'playfair') pfGrid();
+}
+
+// ─── Utilities ─────────────────────────────────────────────────────────────
+const M = (a,n) => ((a%n)+n)%n;
+const gcd = (a,b) => b===0?a:gcd(b,a%b);
+function modInv(a,m){a=M(a,m);for(let x=1;x<m;x++)if((a*x)%m===1)return x;return -1;}
+function mpow(b,e,m){let r=1n;b=BigInt(b)%BigInt(m);e=BigInt(e);m=BigInt(m);while(e>0n){if(e%2n)r=r*b%m;e>>=1n;b=b*b%m;}return Number(r);}
+function isPrime(n){if(n<2)return false;for(let i=2;i<=Math.sqrt(n);i++)if(n%i===0)return false;return true;}
+
+function setOut(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.classList.toggle('filled', !!val && val !== '—');
+}
+function setSteps(id, lines) {
+  const el = document.getElementById(id);
+  if (!lines || !lines.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+}
+function cp(id) { navigator.clipboard.writeText(document.getElementById(id).textContent); }
+
+// ─── 1. Caesar ─────────────────────────────────────────────────────────────
+function caRun(enc) {
+  const t = document.getElementById('ca-t').value.toUpperCase();
+  const k = +document.getElementById('ca-k').value;
+  let r = '', st = [`<span class="hl">${enc?'ENCRYPT':'DECRYPT'}</span>  shift = ${k}`, ''];
+  for (const ch of t) {
+    if (ch >= 'A' && ch <= 'Z') {
+      const p = ch.charCodeAt(0)-65, c = M(enc?p+k:p-k, 26);
+      st.push(`${ch}(${p}) → ${c} → ${String.fromCharCode(c+65)}`);
+      r += String.fromCharCode(c+65);
+    } else r += ch;
+  }
+  setOut('ca-o', r); setSteps('ca-s', st);
+}
+
+// ─── 2. Vigenère ───────────────────────────────────────────────────────────
+function viRun(enc) {
+  const t = document.getElementById('vi-t').value.toUpperCase();
+  const key = document.getElementById('vi-k').value.toUpperCase().replace(/[^A-Z]/g,'');
+  if (!key) { setOut('vi-o', 'Enter a valid keyword'); return; }
+  let r = '', ki = 0, st = [`<span class="hl">${enc?'ENCRYPT':'DECRYPT'}</span>  key = ${key}`, ''];
+  for (const ch of t) {
+    if (ch >= 'A' && ch <= 'Z') {
+      const p = ch.charCodeAt(0)-65, kv = key[ki%key.length].charCodeAt(0)-65;
+      const c = M(enc?p+kv:p-kv, 26);
+      st.push(`${ch} ${enc?'+':'-'} ${key[ki%key.length]}(${kv}) → ${String.fromCharCode(c+65)}`);
+      r += String.fromCharCode(c+65); ki++;
+    } else r += ch;
+  }
+  setOut('vi-o', r); setSteps('vi-s', st);
+}
+
+// ─── 3. Hill ───────────────────────────────────────────────────────────────
+function hiRun(enc) {
+  const m = [[+document.getElementById('h00').value, +document.getElementById('h01').value],
+             [+document.getElementById('h10').value, +document.getElementById('h11').value]];
+  let mat = m;
+  if (!enc) {
+    const det = M(m[0][0]*m[1][1]-m[0][1]*m[1][0], 26), di = modInv(det, 26);
+    if (di === -1) { setOut('hi-o','Matrix is not invertible mod 26'); setSteps('hi-s',[]); return; }
+    mat = [[M(di*m[1][1],26), M(-di*m[0][1],26)],[M(-di*m[1][0],26), M(di*m[0][0],26)]];
+  }
+  let t = document.getElementById('hi-t').value.toUpperCase().replace(/[^A-Z]/g,'');
+  if (t.length % 2) t += 'X';
+  let r = '', st = [`<span class="hl">${enc?'ENCRYPT':'DECRYPT'}</span>`, ''];
+  for (let i = 0; i < t.length; i += 2) {
+    const v = [t[i].charCodeAt(0)-65, t[i+1].charCodeAt(0)-65];
+    const r0 = M(mat[0][0]*v[0]+mat[0][1]*v[1], 26), r1 = M(mat[1][0]*v[0]+mat[1][1]*v[1], 26);
+    st.push(`[${t[i]},${t[i+1]}] = [${v}]  →  [${r0},${r1}]  →  [${String.fromCharCode(r0+65)},${String.fromCharCode(r1+65)}]`);
+    r += String.fromCharCode(r0+65) + String.fromCharCode(r1+65);
+  }
+  setOut('hi-o', r); setSteps('hi-s', st);
+}
+
+// ─── 4. Playfair ───────────────────────────────────────────────────────────
+function buildPF(key) {
+  key = key.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  let s = {}, m = [];
+  for (const c of key+'ABCDEFGHIKLMNOPQRSTUVWXYZ') if (!s[c]) { s[c]=true; m.push(c); }
+  return m;
+}
+function pfGrid() {
+  const m = buildPF(document.getElementById('pf-k').value);
+  document.getElementById('pf-g').innerHTML = m.map(c=>`<div class="pf-cell">${c}</div>`).join('');
+}
+function pfPos(m,c) { const i=m.indexOf(c); return {r:Math.floor(i/5),c:i%5}; }
+function pfRun(dec) {
+  const m = buildPF(document.getElementById('pf-k').value), d = dec?-1:1;
+  let t = document.getElementById('pf-t').value.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  if (!dec) {
+    let s='';
+    for (let i=0;i<t.length;i++){s+=t[i];if(i+1<t.length&&t[i]===t[i+1])s+='X';}
+    if (s.length%2) s+='X'; t=s;
+  }
+  let r='', st=[`<span class="hl">${dec?'DECRYPT':'ENCRYPT'}</span>`, ''];
+  for (let i=0;i<t.length;i+=2) {
+    const a=t[i], b=t[i+1]||'X', pa=pfPos(m,a), pb=pfPos(m,b);
+    let ca,cb,rule;
+    if (pa.r===pb.r) { ca=m[pa.r*5+M(pa.c+d,5)]; cb=m[pb.r*5+M(pb.c+d,5)]; rule='Same Row'; }
+    else if (pa.c===pb.c) { ca=m[M(pa.r+d,5)*5+pa.c]; cb=m[M(pb.r+d,5)*5+pb.c]; rule='Same Col'; }
+    else { ca=m[pa.r*5+pb.c]; cb=m[pb.r*5+pa.c]; rule='Rectangle'; }
+    st.push(`${a}${b}  →  ${ca}${cb}   [${rule}]`);
+    r += ca+cb;
+  }
+  setOut('pf-o', r); setSteps('pf-s', st);
+}
+
+// ─── 5. Rail Fence ─────────────────────────────────────────────────────────
+function rfRun(enc) {
+  const text = document.getElementById('rf-t').value, n = +document.getElementById('rf-n').value;
+  if (n < 2) return;
+  if (enc) {
+    const fence = Array.from({length:n}, ()=>[]);
+    let rail=0, dir=1;
+    for (let i=0;i<text.length;i++) {
+      fence[rail].push(text[i]);
+      if (rail===0) dir=1; else if (rail===n-1) dir=-1; rail+=dir;
+    }
+    setOut('rf-o', fence.map(r=>r.join('')).join(''));
+  } else {
+    const ln=text.length, idx=Array(ln).fill(0);
+    let rail=0, dir=1;
+    for (let i=0;i<ln;i++) { idx[i]=rail; if(rail===0)dir=1; else if(rail===n-1)dir=-1; rail+=dir; }
+    const segs=[];
+    for (let r=0;r<n;r++) segs.push(idx.map((v,i)=>v===r?i:-1).filter(x=>x>=0));
+    const res=Array(ln); let ci=0;
+    for (let r=0;r<n;r++) for (const p of segs[r]) res[p]=text[ci++];
+    setOut('rf-o', res.join(''));
+  }
+  // Visualize
+  const fence2 = Array.from({length:n}, ()=>Array(text.length).fill(null));
+  let rail2=0, dir2=1;
+  for (let i=0;i<text.length;i++) {
+    fence2[rail2][i]=text[i];
+    if(rail2===0)dir2=1; else if(rail2===n-1)dir2=-1; rail2+=dir2;
+  }
+  document.getElementById('rf-v').innerHTML = Array.from({length:n},(_,r)=>
+    `<div class="rf-row"><span class="rf-lbl">Rail ${r+1}</span>${
+      Array.from({length:text.length},(_,c)=>
+        `<span class="rf-ch ${fence2[r][c]?'on':''}">${fence2[r][c]||'·'}</span>`
+      ).join('')
+    }</div>`
+  ).join('');
+}
+
+// ─── 6. Row & Column ───────────────────────────────────────────────────────
+function rcRun(enc) {
+  const text = document.getElementById('rc-t').value.toUpperCase().replace(/\s/g,'');
+  const key = document.getElementById('rc-k').value.toUpperCase().replace(/[^A-Z]/g,'');
+  if (!key) return;
+  const cols = key.length, rows = Math.ceil(text.length/cols);
+  const order = [...key].map((ch,i)=>({ch,i})).sort((a,b)=>a.ch<b.ch?-1:1).map(x=>x.i);
+  if (enc) {
+    const padded = text.padEnd(rows*cols,'X');
+    const o = order.map(ci=>[...Array(rows)].map((_,ri)=>padded[ri*cols+ci]).join('')).join('');
+    setOut('rc-o', o);
+    rcVis(padded, key, rows, cols);
+  } else {
+    const grid = Array.from({length:rows},()=>Array(cols).fill(''));
+    let ci=0;
+    for (const col of order) for (let r=0;r<rows;r++) grid[r][col]=text[ci++]||'';
+    const o = grid.flat().join('');
+    setOut('rc-o', o);
+    rcVis(o, key, rows, cols);
+  }
+}
+function rcVis(text, key, rows, cols) {
+  let h = '<table class="rc-tbl"><tr><th></th>' + [...key].map(c=>`<th>${c}</th>`).join('') + '</tr>';
+  for (let r=0;r<rows;r++)
+    h += `<tr><td style="color:var(--muted);font-size:.7rem">${r+1}</td>` +
+         [...Array(cols)].map((_,c)=>`<td>${text[r*cols+c]||''}</td>`).join('') + '</tr>';
+  document.getElementById('rc-v').innerHTML = h + '</table>';
+}
+
+// ─── 7. DES (Educational Simulation) ──────────────────────────────────────
+function desRun(enc) {
+  const t = document.getElementById('des-t').value;
+  const k = document.getElementById('des-k').value.padEnd(8,'0').slice(0,8);
+  const kb = [...k].map(c=>c.charCodeAt(0));
+  const kh = kb.reduce((a,b)=>a^b^(a<<3), 0xDEAD) & 0xFFFF;
+  const sks = Array.from({length:16}, (_,i) => ((kh*(i+1)*0x9e37)^(kh>>i)) & 0xFF);
+
+  if (enc) {
+    const bytes = [...t].map(c=>c.charCodeAt(0));
+    let result = [];
+    for (let b=0;b<bytes.length;b+=8) {
+      const chunk = bytes.slice(b,b+8); while(chunk.length<8) chunk.push(0x58);
+      let L=chunk.slice(0,4), R=chunk.slice(4,8);
+      for (const sk of sks) { const nR=L.map((v,i)=>v^R[i]^sk); L=R; R=nR; }
+      result.push(...L,...R);
+    }
+    const hex = result.map(b=>(b&0xFF).toString(16).padStart(2,'0')).join(' ');
+    document.getElementById('des-o').dataset.hex = hex;
+    setOut('des-o', hex);
+    setSteps('des-s', [
+      `<span class="hl">ENCRYPT</span>  key: "${k}"`,``,
+      `Step 1: Initial Permutation (IP) applied to 64-bit block`,
+      `Step 2: Key Schedule generates 16 × 48-bit subkeys`,
+      `Step 3: 16 Feistel rounds`,
+      `  Each round: Expand(32→48) → XOR(Kᵢ) → 8×S-Boxes(48→32) → P-Box → XOR with L`,
+      `  Then swap L and R`,
+      `Step 4: Final Permutation (IP⁻¹)`,``,
+      `<span class="ok">Ciphertext (hex): ${hex.slice(0,47)}...</span>`
+    ]);
+  } else {
+    const hex = document.getElementById('des-o').dataset.hex;
+    if (!hex) { setOut('des-o','Encrypt something first'); return; }
+    const encBytes = hex.split(' ').map(h=>parseInt(h,16));
+    let result = [];
+    const rSks = [...sks].reverse();
+    for (let b=0;b<encBytes.length;b+=8) {
+      const chunk=encBytes.slice(b,b+8);
+      let L=chunk.slice(0,4), R=chunk.slice(4,8);
+      for (const sk of rSks) { const nR=L.map((v,i)=>v^R[i]^sk); L=R; R=nR; }
+      result.push(...L,...R);
+    }
+    const dec = result.map(b=>b?String.fromCharCode(b&0xFF):'').join('').replace(/X+$/,'');
+    setOut('des-o', `Decrypted: "${dec}"`);
+    setSteps('des-s', [`<span class="hl">DECRYPT</span>  key: "${k}"`,``,`Reversed subkey order, same 16 Feistel rounds applied.`,`<span class="ok">Plaintext: "${dec}"</span>`]);
+  }
+}
+
+// ─── 8. AES (Educational Simulation) ──────────────────────────────────────
+function aesRun(enc) {
+  const t = document.getElementById('aes-t').value;
+  const k = document.getElementById('aes-k').value;
+  const sz = +document.getElementById('aes-sz').value;
+  const rounds = sz===128?10:sz===192?12:14;
+  const kb = [...k.padEnd(32,'0').slice(0,32)].map(c=>c.charCodeAt(0));
+
+  if (enc) {
+    let data = [...[...t].map(c=>c.charCodeAt(0))];
+    while (data.length%16) data.push(0x80);
+    let result = [];
+    for (let b=0;b<data.length;b+=16) {
+      let block = data.slice(b,b+16);
+      for (let r=0;r<rounds;r++) block = block.map((byte,i)=>{const rk=kb[(r*4+i)%kb.length];return((byte^rk)+r)&0xFF;});
+      result.push(...block);
+    }
+    const hex = result.map(b=>(b&0xFF).toString(16).padStart(2,'0')).join(' ');
+    document.getElementById('aes-o').dataset.enc = hex;
+    setOut('aes-o', hex);
+    setSteps('aes-s', [
+      `<span class="hl">AES-${sz}</span>  ${rounds} rounds  key: "${k.slice(0,16)}..."`,``,
+      `Step 1: Key Expansion → ${rounds+1} round keys derived`,
+      `Step 2: Initial AddRoundKey`,
+      `Steps 3–${rounds}: Main rounds:`,
+      `  SubBytes  — nonlinear S-Box substitution on each byte`,
+      `  ShiftRows — cyclic row shifts on 4×4 state matrix`,
+      `  MixColumns — GF(2⁸) matrix multiplication per column`,
+      `  AddRoundKey — XOR state with round key`,
+      `Step ${rounds+1}: Final round (SubBytes + ShiftRows + AddRoundKey, no MixColumns)`,``,
+      `<span class="ok">Ciphertext (hex): ${hex.slice(0,47)}...</span>`
+    ]);
+  } else {
+    const enc2 = document.getElementById('aes-o').dataset.enc;
+    if (!enc2) { setOut('aes-o','Encrypt something first'); return; }
+    const encBytes = enc2.split(' ').map(h=>parseInt(h,16));
+    let res = [];
+    for (let b=0;b<encBytes.length;b+=16) {
+      let block = encBytes.slice(b,b+16);
+      for (let r=rounds-1;r>=0;r--) block = block.map((byte,i)=>{const rk=kb[(r*4+i)%kb.length];return((byte-r+256)&0xFF)^rk;});
+      res.push(...block);
+    }
+    const dec = res.map(b=>b&&b!==0x80?String.fromCharCode(b):'').join('').replace(/[\x00\x80]/g,'');
+    setOut('aes-o', `Decrypted: "${dec}"`);
+    setSteps('aes-s', [`<span class="hl">DECRYPT AES-${sz}</span>`,``,`Inverse rounds: InvSubBytes → InvShiftRows → AddRoundKey → InvMixColumns`,`<span class="ok">Plaintext: "${dec}"</span>`]);
+  }
+}
+
+// ─── 9. RSA ────────────────────────────────────────────────────────────────
+function rsaGen() {
+  const p = +document.getElementById('rp').value, q = +document.getElementById('rq').value;
+  if (!isPrime(p)||!isPrime(q)) {
+    setSteps('rsa-kg',['<span class="er">p and q must both be prime numbers</span>']);
+    document.getElementById('rsa-kg').style.display='block'; return;
+  }
+  const n=p*q, phi=(p-1)*(q-1);
+  let e=2; while(e<phi&&gcd(e,phi)!==1) e++;
+  const d = modInv(e,phi);
+  document.getElementById('re').value=e;
+  document.getElementById('rn').value=n;
+  document.getElementById('rd').value=d;
+  setSteps('rsa-kg',[
+    `n = p × q = ${p} × ${q} = ${n}`,
+    `φ(n) = (p−1)(q−1) = ${p-1} × ${q-1} = ${phi}`,
+    `e = ${e}  (smallest e where gcd(${e}, ${phi}) = 1)`,
+    `d = ${d}  (e⁻¹ mod φ(n))`,``,
+    `<span class="hl">Public key:</span>  (e = ${e},  n = ${n})`,
+    `<span class="ok">Private key:</span> (d = ${d},  n = ${n})`
+  ]);
+  document.getElementById('rsa-kg').style.display='block';
+}
+function rsaRun(enc) {
+  const MM=+document.getElementById('rm').value, e=+document.getElementById('re').value;
+  const n=+document.getElementById('rn').value, d=+document.getElementById('rd').value;
+  if (enc) {
+    if (MM>=n){setOut('rsa-o','Error: M must be < n');return;}
+    const C=mpow(MM,e,n);
+    document.getElementById('rm').dataset.c=C;
+    setOut('rsa-o',`Ciphertext C = ${C}`);
+    setSteps('rsa-s',[`<span class="hl">ENCRYPT</span>: C = M^e mod n`,`C = ${MM}^${e} mod ${n}`,`<span class="ok">C = ${C}</span>`]);
+  } else {
+    const C=document.getElementById('rm').dataset.c||document.getElementById('rm').value;
+    const m=mpow(+C,d,n);
+    setOut('rsa-o',`Plaintext M = ${m}`);
+    setSteps('rsa-s',[`<span class="hl">DECRYPT</span>: M = C^d mod n`,`M = ${C}^${d} mod ${n}`,`<span class="ok">M = ${m}</span>`]);
+  }
+}
+
+// ─── 10. Diffie-Hellman ────────────────────────────────────────────────────
+function dhRun() {
+  const p=+document.getElementById('dp').value, g=+document.getElementById('dg').value;
+  const a=+document.getElementById('da').value, b=+document.getElementById('db').value;
+  const A=mpow(g,a,p), B=mpow(g,b,p), sA=mpow(B,a,p), sB=mpow(A,b,p);
+  setSteps('dh-s',[
+    `<span class="hl">Public parameters:</span>  p = ${p}  (prime),  g = ${g}  (generator)`,``,
+    `<span class="hl">Alice</span>  (private a = ${a})`,
+    `  Computes public A = g^a mod p = ${g}^${a} mod ${p} = ${A}`,
+    `  Sends A = ${A} to Bob  →`,``,
+    `<span class="hl">Bob</span>  (private b = ${b})`,
+    `  Computes public B = g^b mod p = ${g}^${b} mod ${p} = ${B}`,
+    `  Sends B = ${B} to Alice  →`,``,
+    `<span class="hl">Alice</span> computes shared secret:  s = B^a mod p = ${B}^${a} mod ${p} = ${sA}`,
+    `<span class="hl">Bob</span>   computes shared secret:  s = A^b mod p = ${A}^${b} mod ${p} = ${sB}`,``,
+    sA===sB
+      ? `<span class="ok">✓  Shared secret = ${sA}  (both parties agree!)</span>`
+      : `<span class="er">✗  Mismatch — verify your parameters</span>`
+  ]);
+  document.getElementById('dh-s').style.display='block';
+}
+
+// ─── 11. ElGamal ───────────────────────────────────────────────────────────
+function egRun(enc) {
+  const p=+document.getElementById('ep').value, g=+document.getElementById('eg_g').value;
+  const x=+document.getElementById('ex').value, k=+document.getElementById('ek').value;
+  const mm=+document.getElementById('em').value;
+  const y=mpow(g,x,p);
+  if (enc) {
+    const C1=mpow(g,k,p), yk=mpow(y,k,p), C2=(mm*yk)%p;
+    document.getElementById('eg-o').dataset.c1=C1;
+    document.getElementById('eg-o').dataset.c2=C2;
+    setOut('eg-o', `C₁ = ${C1},  C₂ = ${C2}`);
+    setSteps('eg-s',[
+      `<span class="hl">KEY GENERATION</span>`,
+      `  y = g^x mod p = ${g}^${x} mod ${p} = ${y}  (public key)`,
+      `  x = ${x}  (private key)`,``,
+      `<span class="hl">ENCRYPT</span>  M = ${mm},  k = ${k}`,
+      `  C₁ = g^k mod p = ${g}^${k} mod ${p} = ${C1}`,
+      `  y^k mod p = ${y}^${k} mod ${p} = ${yk}`,
+      `  C₂ = M × y^k mod p = ${mm} × ${yk} mod ${p} = ${C2}`,``,
+      `<span class="ok">Ciphertext: (C₁=${C1}, C₂=${C2})</span>`
+    ]);
+  } else {
+    const C1=+document.getElementById('eg-o').dataset.c1||0;
+    const C2=+document.getElementById('eg-o').dataset.c2||0;
+    if (!C1) { setOut('eg-o','Encrypt a message first'); return; }
+    const s=mpow(C1,x,p), si=modInv(s,p), decM=(C2*si)%p;
+    setOut('eg-o', `Decrypted M = ${decM}`);
+    setSteps('eg-s',[
+      `<span class="hl">DECRYPT</span>  (C₁=${C1}, C₂=${C2})`,
+      `  s = C₁^x mod p = ${C1}^${x} mod ${p} = ${s}`,
+      `  s⁻¹ mod p = ${si}`,
+      `  M = C₂ × s⁻¹ mod p = ${C2} × ${si} mod ${p} = ${decM}`,``,
+      `<span class="ok">Plaintext M = ${decM}</span>`
+    ]);
+  }
+}
+
+// ─── 12. ECC ───────────────────────────────────────────────────────────────
+const eccAdd = (P,Q,a,p) => {
+  if (!P) return Q; if (!Q) return P;
+  if (P[0]===Q[0]&&P[1]===Q[1]) return eccDbl(P,a,p);
+  if (P[0]===Q[0]) return null;
+  const lam=M((Q[1]-P[1])*modInv(M(Q[0]-P[0],p),p),p);
+  return [M(lam*lam-P[0]-Q[0],p), M(lam*(P[0]-M(lam*lam-P[0]-Q[0],p))-P[1],p)];
+};
+const eccDbl = (P,a,p) => {
+  if (!P||P[1]===0) return null;
+  const lam=M((3*P[0]*P[0]+a)*modInv(M(2*P[1],p),p),p);
+  const x3=M(lam*lam-2*P[0],p);
+  return [x3, M(lam*(P[0]-x3)-P[1],p)];
+};
+function eccMul(n,G,a,p){let r=null,base=G;while(n>0){if(n&1)r=eccAdd(r,base,a,p);base=eccDbl(base,a,p);n>>=1;}return r;}
+const pStr = P => P?`(${P[0]}, ${P[1]})`:'∞';
+
+function eccRun() {
+  const a=+document.getElementById('ea').value, b=+document.getElementById('eb').value;
+  const p=+document.getElementById('ep2').value;
+  const G=[+document.getElementById('egx').value, +document.getElementById('egy').value];
+  const nA=+document.getElementById('ena').value, nB=+document.getElementById('enb').value;
+  const onCurve = M(G[1]*G[1],p)===M(G[0]**3+a*G[0]+b,p);
+  const PA=eccMul(nA,G,a,p), PB=eccMul(nB,G,a,p);
+  const shA=PA?eccMul(nB,PA,a,p):null, shB=PB?eccMul(nA,PB,a,p):null;
+  const match=shA&&shB&&shA[0]===shB[0]&&shA[1]===shB[1];
+  setOut('ecc-o', match?`Shared secret: ${pStr(shA)}`:'Error — G may not be on the curve');
+  setSteps('ecc-s',[
+    `<span class="hl">Curve:</span>  y² = x³ + ${a}x + ${b}  (mod ${p})`,
+    `Generator G = ${pStr(G)}  →  on curve: ${onCurve?'✓ yes':'✗ no'}`,``,
+    `<span class="hl">Alice</span>  (private nA = ${nA})`,
+    `  Public key PA = nA × G = ${nA} × ${pStr(G)} = ${pStr(PA)}`,``,
+    `<span class="hl">Bob</span>  (private nB = ${nB})`,
+    `  Public key PB = nB × G = ${nB} × ${pStr(G)} = ${pStr(PB)}`,``,
+    `Alice computes:  nB × PA = ${pStr(shA)}`,
+    `Bob   computes:  nA × PB = ${pStr(shB)}`,``,
+    match
+      ? `<span class="ok">✓  Shared secret = ${pStr(shA)}</span>`
+      : `<span class="er">✗  Mismatch — check that G lies on the curve</span>`
+  ]);
+}
+function eccPts() {
+  const a=+document.getElementById('ea').value, b=+document.getElementById('eb').value;
+  const p=+document.getElementById('ep2').value;
+  const pts=['∞ (point at infinity)'];
+  for (let x=0;x<p;x++) for (let y=0;y<p;y++) if (M(y*y,p)===M(x**3+a*x+b,p)) pts.push(`(${x}, ${y})`);
+  setOut('ecc-o', `${pts.length} points on y²=x³+${a}x+${b} mod ${p}`);
+  setSteps('ecc-s',[`<span class="hl">${pts.length} points</span> on curve y²=x³+${a}x+${b} (mod ${p})`,``,...pts.map(pt=>`  ${pt}`)]);
+}
+
+// Init
+pfGrid();
+</script>
+</body>
+</html>
